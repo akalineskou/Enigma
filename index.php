@@ -117,7 +117,7 @@ var reflectors = {
 	'B': 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
 	'C': 'FVPJIAOYEDRZXWGCTKUQSBNMHL'};
 
-var R, M, L, reflector;
+var R, M, L, reflector, div_show;
 
 var inner_counts = {
 	'R' : -1, // right
@@ -135,9 +135,11 @@ function enigma(string, e) {
 	if (keycode < ascii_number || keycode > ascii_number + letters) //not letter
 		return;
 
+	div_show = document.getElementById('show');
+
 	get_settings();
 	if (!verify_settings()) {
-		document.getElementById('show').innerHTML = "Wrong settings!";
+		div_show.innerHTML = "Wrong settings!";
 
 		return;
 	}
@@ -167,7 +169,7 @@ function enigma(string, e) {
 	//pass through right rotor - offset
 	my_char = alphabet[check_count(get_reverse(R, getCode(my_char)) - inner_counts["R"])];
 
-	document.getElementById('show').innerHTML += my_char;
+	div_show.innerHTML += my_char;
 }
 
 function get_settings() {
@@ -261,6 +263,11 @@ function create_rotor_select(id, selected) {
 	?>
 }
 
+function clear_text() {
+	div_show.innerHTML = '';
+	document.getElementById("input").value = '';
+}
+
 </script>
 Rotors
 <select id="L"></select>
@@ -274,7 +281,7 @@ Reflector <select id="reflector">
 	<option selected="selected">B</option>
 	<option>C</option>
 </select><br>
-<br>Text <input type="text" onkeyup="enigma(this.value, event);">
+<br>Text <input type="text" id="input" onkeyup="enigma(this.value, event);"><input type="button" value="Clear Text" onclick="clear_text();">
 <div id="show"></div>
 <script>
 create_rotor_select("L", 3);
