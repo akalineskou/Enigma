@@ -89,22 +89,36 @@ function no_dupes($a, $r) {
 
 ob_start("ob_gzhandler");
 
+$rotors = array('I' => 'EKMFLGDQVZNTOWYHXUSPAIBRCJ',
+				'II' => 'AJDKSIRUXBLHWTMCQGZNPYFVOE',
+				'III' => 'BDFHJLCPRTXVZNYEIWGAKMUSQO',
+				'IV' => 'ESOVPZJAYQUIRHXLNFTGKDCMWB',
+				'V' => 'ESOVPZJAYQUIRHXLNFTGKDCMWB',
+				'VI' => 'JPGVOUMFYQBENHZRDKASXLICTW',
+				'VII' => 'NZJHGRCXMYSWBOUFAIVLPEKQDT',
+				'VIII' => 'FKQHTLXOCBJSPDZRAMEWNIUYGV');
 ?>
 <script>
-var alphabet = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 var rotors = {
-		'I':   ['F','I','N','K','H','R','E','J','B','X','T','Q','Z','G','A','C','V','P','D','L','W','Y','O','U','M','S'],
-		'II':  ['U','G','I','Y','A','N','K','X','E','C','F','S','B','R','D','L','T','P','Q','Z','W','H','O','J','M','V'],
-		'III': ['R','W','Y','O','F','A','Q','V','J','U','T','K','B','P','N','C','H','E','X','Z','G','S','D','L','M','I'],
-		'IV':  ['N','O','W','Z','Q','T','I','E','J','X','P','B','F','S','Y','D','L','M','R','H','V','A','G','C','U','K'],
-		'V':   ['X','N','W','Y','I','V','K','J','Z','B','F','D','U','Q','S','O','T','A','P','G','L','C','E','H','M','R']};
+<?php
+$i = 0;
+foreach ($rotors as $text => $value) {
+	echo "\t'".$text."': '".$value."'".($i < count($rotors)-1 ? ',' : '')."\n";
 
-var reflector = {'A':'Q','B':'Z','C':'P','D':'R','E':'O','F':'U','G':'Y','H':'N','I':'T','J':'X','K':'S','L':'V','M':'W','N':'H','O':'E','P':'C','Q':'A','R':'D','S':'K','T':'I','U':'F','V':'L','W':'M','X':'J','Y':'G','Z':'B'};
+	$i++;
+}
+?>
+};
 
-var R, M, L;
-test = 'abc'
-alert(test[0])
+var reflectors = {
+	'A': 'EJMZALYXVBWFCRQUONTSPIKHGD',
+	'B': 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
+	'C': 'FVPJIAOYEDRZXWGCTKUQSBNMHL'};
+
+var R, M, L, reflector;
+
 var inner_counts = {
 	'R' : -1, // right
 	'M' : 0, // middle
@@ -113,7 +127,7 @@ var inner_counts = {
 var letters = 26;
 var ascii_number = 65;
 
-function encrypt(string, e) {
+function enigma(string, e) {
 	if (string.length == 0) // empty
 		return;
 
@@ -122,7 +136,11 @@ function encrypt(string, e) {
 		return;
 
 	get_settings();
-	//verify_settings();
+	if (!verify_settings()) {
+		document.getElementById('show').innerHTML = "Wrong settings!";
+
+		return;
+	}
 
 	my_char = string[string.length - 1].toUpperCase(); // get last char
 
@@ -138,7 +156,7 @@ function encrypt(string, e) {
 	my_char = L[check_count(getCode(my_char) + inner_counts["L"])];
 
 	//pass through reflector
-	my_char = reflector[my_char];
+	my_char = reflector[getCode(my_char)];
 
 	//pass through left rotor - offset
 	my_char = alphabet[check_count(get_reverse(L, getCode(my_char)) - inner_counts["L"])];
@@ -160,9 +178,21 @@ function get_settings() {
 	Lselect = document.getElementById("L");
 	L = rotors[Rselect.options[Lselect.selectedIndex].text];
 
+	reflector_select = document.getElementById("reflector");
+	reflector = reflectors[reflector_select.options[reflector_select.selectedIndex].text];
+
 	inner_counts["R"] = document.getElementById("cR").value - 1;
 	inner_counts["M"] = document.getElementById("cM").value - 1;
 	inner_counts["L"] = document.getElementById("cL").value - 1;
+}
+
+function verify_settings() {
+	if ((inner_counts["R"] < 0 || inner_counts["R"] > letters) ||
+		(inner_counts["M"] < 0 || inner_counts["M"] > letters) ||
+		(inner_counts["L"] < 0 || inner_counts["L"] > letters))
+		return false;
+
+	return true;
 }
 
 function get_reverse(arr, c) {
@@ -213,34 +243,44 @@ function getChar(my_code) {
 	return String.fromCharCode(my_code + ascii_number);
 }
 
+function create_rotor_select(id, selected) {
+	selected--;
+	
+	cur_select = document.getElementById(id);
+
+	<?php
+	$i = 0;
+	foreach ($rotors as $text => $value) {
+	echo "\n\t";
+	?>option = new Option('<?php echo $text; ?>', '', selected == <?php echo $i; ?> ? true : false);
+	cur_select.options[cur_select.options.length] = option;
+<?php
+
+		$i++;
+	}
+	?>
+}
+
 </script>
 Rotors
-<select id="L">
-	<option>I</option>
-	<option>II</option>
-	<option selected="selected">III</option>
-	<option>IV</option>
-	<option>V</option>
-</select>
-<select id="M">
-	<option selected="selected">I</option>
-	<option>II</option>
-	<option>III</option>
-	<option>IV</option>
-	<option>V</option>
-</select>
-<select id="R">
-	<option>I</option>
-	<option selected="selected">II</option>
-	<option>III</option>
-	<option>IV</option>
-	<option>V</option>
-</select><br>
+<select id="L"></select>
+<select id="M"></select>
+<select id="R"></select><br>
 Offset <input type="text" id="cL" value="1" size="3">
 		<input type="text" id="cM" value="1" size="3">
 		<input type="text" id="cR" value="1" size="3"> 1-26<br>
-<br>Text to encrypt<input type="text" onkeyup="encrypt(this.value, event);">
+Reflector <select id="reflector">
+	<option>A</option>
+	<option selected="selected">B</option>
+	<option>C</option>
+</select><br>
+<br>Text <input type="text" onkeyup="enigma(this.value, event);">
 <div id="show"></div>
+<script>
+create_rotor_select("L", 3);
+create_rotor_select("M", 1);
+create_rotor_select("R", 2);
+</script>
 <?php
 
 $html_output->setBody(ob_get_clean());
